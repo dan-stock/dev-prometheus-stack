@@ -1,0 +1,36 @@
+master:
+  masterOnly: false
+  replicaCount: 1
+  persistence:
+    enabled: false
+data:
+  replicaCount: 0
+  persistence:
+    enabled: false
+coordinating:
+  replicaCount: 0
+  persistence:
+    enabled: false
+ingest:
+  replicaCount: 0
+  persistence:
+    enabled: false
+
+sysctlImage:
+  enabled: false
+
+# global:
+#   imageRegistry: "platform-registry.wpr.cdt.ichp.ing.net/ichp-images-benchmark"
+
+# image:
+#   tag: 8.13.4-debian-12-r0
+
+# master:
+#   # resourcesPreset: large
+#   resources:
+#     requests:
+#       cpu: 2
+#       memory: 512Mi
+#     limits:
+#       cpu: 3
+#       memory: 8192Mi

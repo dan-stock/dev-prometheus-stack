@@ -1,0 +1,23 @@
+prometheus:
+  prometheusSpec:
+    ruleSelector:
+      matchLables:
+        role: prometheus-rulefiles
+    additionalScrapeConfigs:
+      name: additional-scape-configs
+      key: additional-scape-configs.yaml
+
+    additionalScrapeConfigsSecret:
+      enabled: true
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - localhost:9090
+  - job_name: 'node_exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - localhost:9100

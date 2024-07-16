@@ -1,0 +1,5 @@
+operator:
+  image:
+    repository: platform-registry.wpr.cdt.ichp.ing.net/ichp-images-benchmark/benchmark-operator
+  redisImage:
+    repository:  platform-registry.wpr.cdt.ichp.ing.net/ichp-images-benchmark/redis
