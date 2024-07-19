@@ -1,17 +1,33 @@
 #!/bin/bash
 # set -x
 
-helm upgrade --install -f prometheus-values.yaml prometheus prometheus-community/prometheus -n benchmark-operator
+# ## test seting the rules and alerts in prom
+# PROM=$(oc get pods -n benchmark-operator|grep prometheus-server|awk '{print $1}')
 
+# # oc rsync ./prometheus-recording_rules.yaml /etc/config/recording_rules.yml -c "$PROM"
+# # oc rsync ./prometheus-alerting_rules.yaml /etc/config/alerting_rules.yml -c "$PROM"
 
-exit
+# rsync --rsh='oc rsh' ./prometheus-recording_rules.yaml $PROM:/etc/config/recording_rules.yml
+
+# echo "rsync --rsh='oc rsh' ./prometheus-recording_rules.yaml $PROM:/etc/config/recording_rules.yml"
+
+# exit
 
 ## test the prometheus configuration and rules
 
 helm uninstall prometheus -n benchmark-operator
-echo ""
-helm install -f prometheus-values.yaml prometheus prometheus-community/prometheus -n benchmark-operator
+# PROM=$(oc get pods -n benchmark-operator|grep prometheus-server|awk '{print $1}')
+# PROM_ID=$(ps -ef |grep -E "$PROM&port-forward"|grep -v grc|awk '{print $2}')
 
+# echo "$PROM_ID"
+# ps -ef |grep port-forward
+
+# exit
+
+# kill -9 "$PROM_ID"
+
+echo ""
+helm install -f prometheus-config.yaml prometheus prometheus-community/prometheus -n benchmark-operator
 
 ###############################
 ## testing the run loop works
@@ -21,7 +37,7 @@ run_loop(){
         echo ""
         oc get po
         sleep 10
-        clean
+        clear
 
         read -t 1 -n 1 input
         if [ $? = 0 ]; then
@@ -34,8 +50,18 @@ run_loop(){
 run_loop
 
 PROM=$(oc get pods -n benchmark-operator|grep prometheus-server|awk '{print $1}')
-kubectl port-forward -n benchmark-operator "$PROM" 9090 &
+ps -ef |grep port-forward
+echo $PROM
+
+echo "kill port-forard first, then "
+echo "kubectl port-forward -n benchmark-operator "$PROM" 9090 &"
 echo "open http://localhost:9090/graph"
+
+
+exit
+
+
+helm upgrade --install -f prometheus-values.yaml prometheus prometheus-community/prometheus -n benchmark-operator
 
 
 exit

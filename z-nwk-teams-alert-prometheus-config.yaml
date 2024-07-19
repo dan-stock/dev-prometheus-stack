@@ -1,0 +1,36 @@
+#Provide custom recording or alerting rules to be deployed into the cluster.
+additionalPrometheusRulesMap:
+  rule-name:
+    groups:
+    - name: CustomMediumAlert
+      rules:
+      - alert: CustomMediumAlert
+        annotations:
+          message: 'More than %80 Memory usage {{ $labels.container }} {{ $labels.instance }} '
+        expr: (sum(rate(container_cpu_usage_seconds_total{name="k8s_vault_vault-0_default_d307b616-6aed-4401-9cf5-5018408b94a4_0"}[3m]))BY (name) * 100) > 1
+        for: 1m
+        labels:
+          severity: critical
+
+  config:
+    global:
+      resolve_timeout: 2m
+    route:
+      group_by: ['job']
+      group_wait: 30s
+      group_interval: 1m
+      repeat_interval: 12h
+      receiver: 'demoreciever'
+      routes:
+      - match:
+          alertname: CustomMediumAlert
+        receiver: 'demoreciever'
+    receivers:
+    - name: 'demoreciever'
+      webhook_configs:
+      - url: 'https://teams.microsoft.com/l/channel/19%3A63d0031a777049019556f17f2b1e8948%40thread.tacv2/C3PO?groupId=3be098a7-b88e-44fb-a3d3-5a5de5452c6f&tenantId=587b6ea1-3db9-4fe1-a9d7-85d4c64ce5cc'
+        send_resolved: true
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
+
+## this config tests out sending alerts to teams

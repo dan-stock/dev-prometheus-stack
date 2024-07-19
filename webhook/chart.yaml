@@ -1,0 +1,76 @@
+---
+serverFiles:
+  alerting_rules.yml: 
+    groups:
+    - name: example
+      rules:
+      - alert: HighRequestLatency
+        expr: sum(rate(container_network_receive_bytes_total{namespace="kube-logging"}[5m]))>20000
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: High request latency
+
+alertmanager:
+  persistentVolume:
+    storageClass: default-hdd-retain
+  ## Deploy alertmanager
+  ##
+  enabled: true
+
+  ## Service account for Alertmanager to use.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  ##
+  serviceAccount:
+    create: true
+    name: ""
+
+  ## Configure pod disruption budgets for Alertmanager
+  ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  ## This configuration is immutable once created and will require the PDB to be deleted to be changed
+  ## https://github.com/kubernetes/kubernetes/issues/45398
+  ##
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
+  ## Alertmanager configuration directives
+  ## ref: https://prometheus.io/docs/alerting/configuration/#configuration-file
+  ##      https://prometheus.io/webtools/alerting/routing-tree-editor/
+  ##
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url: "I changed this url for the stack overflow question"
+    route:
+      group_by: ['job']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      #receiver: 'slack'
+      routes:
+      - match:
+          alertname: DeadMansSwitch
+        receiver: 'null'
+      - match:
+        receiver: 'slack'
+        continue: true
+    receivers:
+    - name: 'null'
+    - name: 'slack'
+      slack_configs:
+      - channel: 'alerts'
+        send_resolved: false
+        title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Monitoring Event Notification'
+        text: >-
+          {{ range .Alerts }}
+            *Alert:* {{ .Annotations.summary }} - `{{ .Labels.severity }}`
+            *Description:* {{ .Annotations.description }}
+            *Graph:* <{{ .GeneratorURL }}|:chart_with_upwards_trend:> *Runbook:* <{{ .Annotations.runbook }}|:spiral_note_pad:>
+            *Details:*
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+          {{ end }}
+

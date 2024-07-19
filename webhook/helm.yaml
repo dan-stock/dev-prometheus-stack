@@ -1,0 +1,14 @@
+# HELM values:
+value_mm:
+#  title: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+  title: '{{ template "telegram.default.message" . }}'
+  text: '{{ template "slack.myorg.text" . }}'
+
+# alertmanager-configmap.yaml (Victoria Metrics Alert)
+    - name: mattermost
+      slack_configs:
+      - send_resolved: true
+        api_url: {{ .Values.mm.url }}
+        channel: "#alerts-channel"
+        title: {{ .Values.value_mm.title | squote }}
+        text: {{ .Values.value_mm.text | squote }}

@@ -1,0 +1,47 @@
+prometheus:
+  prometheusSpec:
+    ruleSelector:
+      matchLables:
+        role: prometheus-rulefiles
+    additionalScrapeConfigs:
+      name: additional-scape-configs
+      key: additional-scape-configs.yaml
+
+    additionalScrapeConfigsSecret:
+      enabled: true
+
+spec:
+  configuration: |
+    global:
+      scrape_interval: 60s
+      scrape_timeout: 59s
+      evaluation_interval: 60s
+  scrape_configs:
+    - job_name: 'prometheus'
+      scrape_interval: 5s
+      static_configs:
+        - targets:
+          - localhost:9090
+    - job_name: 'node_exporter'
+      scrape_interval: 5s
+      static_configs:
+        - targets:
+          - localhost:9100
+
+# test alert
+  alerting: | # here you place your prometheus alerting rules, do note in this sample you will be alerted if a single scrape target is down. (if you onboarded your itProduct (P00000 format) on IAT)
+    groups:
+    - name: test
+      rules:
+      - alert: dummy test
+        expr:  alertmanager_cluster_enabled == 1
+        for: 60m
+        labels:
+          source: prometheus
+          description: "test wait time syntax"
+          destination: platform
+          severity: low
+          rtkenvironment: test
+        annotations:
+          summary: "test wait time syntax"
+          description: "test wait time syntax"
